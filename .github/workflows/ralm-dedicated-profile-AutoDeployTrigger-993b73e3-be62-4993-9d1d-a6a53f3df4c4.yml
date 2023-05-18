@@ -1,0 +1,42 @@
+name: Trigger auto deployment for ralm-dedicated-profile
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/ralm-dedicated-profile-AutoDeployTrigger-993b73e3-be62-4993-9d1d-a6a53f3df4c4.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.RALMDEDICATEDPROFILE_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: ralmr.azurecr.io
+          registryUsername: ${{ secrets.RALMDEDICATEDPROFILE_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.RALMDEDICATEDPROFILE_REGISTRY_PASSWORD }}
+          containerAppName: ralm-dedicated-profile
+          resourceGroup: ContainerApps-NEU-Dedicated
+          imageToBuild: ralmr.azurecr.io/ralm-dedicated-profile:${{ github.sha }}
+          
+
+     
+
